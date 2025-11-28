@@ -1,0 +1,91 @@
+{
+  "name": "chittyintel",
+  "version": "1.0.0",
+  "description": "ChittyOS Case Intelligence Service - fact analysis, contradiction detection, timeline construction, pattern recognition",
+  "category": "intelligence",
+  "criticality": "standard",
+  "endpoints": [
+    {
+      "url": "https://intel.chitty.cc/health",
+      "type": "health",
+      "method": "GET"
+    },
+    {
+      "url": "https://intel.chitty.cc/api/v1/status",
+      "type": "status",
+      "method": "GET"
+    },
+    {
+      "url": "https://intel.chitty.cc/api/v1/analyze/:caseId",
+      "type": "analysis",
+      "method": "POST",
+      "description": "Analyze entire case for atomic facts"
+    },
+    {
+      "url": "https://intel.chitty.cc/api/v1/timeline/:caseId",
+      "type": "timeline",
+      "method": "GET",
+      "description": "Get constructed timeline for case"
+    },
+    {
+      "url": "https://intel.chitty.cc/api/v1/contradictions/:caseId",
+      "type": "analysis",
+      "method": "GET",
+      "description": "Get detected contradictions"
+    },
+    {
+      "url": "https://intel.chitty.cc/api/v1/patterns/:caseId",
+      "type": "analysis",
+      "method": "GET",
+      "description": "Get all detected patterns"
+    }
+  ],
+  "schema": {
+    "version": "1.0.0",
+    "entities": [
+      "fact_pattern",
+      "timeline_event",
+      "case_analysis"
+    ],
+    "tables": [
+      "fact_patterns",
+      "timeline_events"
+    ],
+    "relationships": [
+      "chittyevidence",
+      "chittyledger",
+      "chittycases"
+    ]
+  },
+  "security": {
+    "authentication": "jwt",
+    "encryption": "https",
+    "requiredScopes": [
+      "chittyintel:read",
+      "chittyintel:analyze"
+    ]
+  },
+  "dependencies": {
+    "required": [
+      "chittyid",
+      "chittyledger"
+    ],
+    "optional": [
+      "chittyevidence",
+      "chittycases"
+    ]
+  },
+  "metadata": {
+    "author": "ChittyOS",
+    "repository": "https://github.com/chittyos/chittyintel",
+    "documentation": "https://docs.chitty.cc/intel",
+    "created": "2024-11-18",
+    "tags": [
+      "intelligence",
+      "analysis",
+      "facts",
+      "legal",
+      "cases"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+name = "chittyintel"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "0bc21e3a5a9de1a4cc843be9c3e98121"
+
+# Production route
+routes = [
+  { pattern = "intel.chitty.cc", custom_domain = true }
+]
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "INTEL_CACHE"
+id = "924aa5a8fd9c4157b8865faddfd97312"
+
+[[kv_namespaces]]
+binding = "PATTERN_STORE"
+id = "b87d842c629d432482c9562b14f471e8"
+
+# Vectorize for semantic search
+[[vectorize]]
+binding = "INTEL_VECTORIZE"
+index_name = "intel-embeddings"
+
+# AI binding
+[ai]
+binding = "AI"
+
+# Environment variables
+[vars]
+CHITTYOS_DOMAIN = "chitty.cc"
+SERVICE_NAME = "chittyintel"
+API_VERSION = "v1"
+
+# Secrets (set via wrangler secret put)
+# NEON_DATABASE_URL
+# CHITTYCONNECT_SERVICE_TOKEN  # Single token for all ChittyConnect communication
+# ANTHROPIC_API_KEY
