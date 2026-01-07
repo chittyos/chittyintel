@@ -50,24 +50,33 @@ router.all('*', () => new Response('Not Found', { status: 404 }));
 export default {
   async fetch(request, env, ctx) {
     try {
-      // Add CORS headers
       const response = await router.handle(request, env, ctx);
 
-      const headers = new Headers(response.headers);
-      headers.set('Access-Control-Allow-Origin', '*');
-      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-ChittyID');
+      // If a route returned a plain object, normalize to Response
+      const normalized = response instanceof Response
+        ? response
+        : new Response(typeof response === 'string' ? response : JSON.stringify(response), {
+            headers: { 'Content-Type': 'application/json' }
+          });
 
-      return new Response(response.body, {
-        status: response.status,
+      // Clone to safely mutate headers while preserving body/streams
+      const headers = new Headers(normalized.headers);
+      // Restrictive CORS: allow only trusted origins
+      const origin = request.headers.get('Origin') || '';
+      const allowed = new Set(['https://connect.chitty.cc', 'https://app.chitty.cc']);
+      const allowOrigin = allowed.has(origin) ? origin : 'null';
+      headers.set('Access-Control-Allow-Origin', allowOrigin);
+      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-ChittyID, X-ChittyOS-Service');
+      headers.set('Vary', 'Origin');
+
+      return new Response(normalized.body, {
+        status: normalized.status,
         headers
       });
     } catch (error) {
       console.error('ChittyIntel error:', error);
-      return new Response(JSON.stringify({
-        error: 'Internal Server Error',
-        message: error.message
-      }), {
+      return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });

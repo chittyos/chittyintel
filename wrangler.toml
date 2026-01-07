@@ -37,3 +37,31 @@ API_VERSION = "v1"
 # NEON_DATABASE_URL
 # CHITTYCONNECT_SERVICE_TOKEN  # Single token for all ChittyConnect communication
 # ANTHROPIC_API_KEY
+
+[env.staging]
+name = "chittyintel-staging"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# No custom routes in staging by default; use wrangler dev or preview urls
+
+[[env.staging.kv_namespaces]]
+binding = "INTEL_CACHE"
+id = "${STAGING_INTEL_CACHE_KV:-00000000000000000000000000000000}"
+
+[[env.staging.kv_namespaces]]
+binding = "PATTERN_STORE"
+id = "${STAGING_PATTERN_STORE_KV:-00000000000000000000000000000000}"
+
+[[env.staging.vectorize]]
+binding = "INTEL_VECTORIZE"
+index_name = "intel-embeddings-staging"
+
+[env.staging.ai]
+binding = "AI"
+
+[env.staging.vars]
+CHITTYOS_DOMAIN = "chitty.cc"
+SERVICE_NAME = "chittyintel"
+API_VERSION = "v1"

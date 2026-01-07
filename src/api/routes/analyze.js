@@ -6,6 +6,41 @@
 import { FactExtractor } from '../../intelligence/fact-extractor.js';
 import { NeonClient } from '../../lib/neon.js';
 
+async function persistFacts(db, facts) {
+  if (!facts || facts.length === 0) return 0;
+
+  // Map to chittyschema authoritative columns for atomic_facts
+  // Columns: id, evidence_id, fact_type, fact_content, classification, confidence, source_page, source_location, extracted_by, extracted_at, metadata
+  const colsPerRow = 11;
+  const values = facts
+    .map((_, i) => `($${i*colsPerRow+1}, $${i*colsPerRow+2}, $${i*colsPerRow+3}, $${i*colsPerRow+4}, $${i*colsPerRow+5}, $${i*colsPerRow+6}, $${i*colsPerRow+7}, $${i*colsPerRow+8}, $${i*colsPerRow+9}, $${i*colsPerRow+10}, $${i*colsPerRow+11})`)
+    .join(',');
+
+  const params = facts.flatMap(f => [
+    f.id,                                 // id
+    f.evidence_id,                        // evidence_id
+    f.fact_type,                          // fact_type
+    f.fact_text,                          // fact_content (mapped)
+    f.classification_level,               // classification (mapped)
+    typeof f.weight === 'number' ? Math.max(0, Math.min(1, f.weight)) : null, // confidence
+    f.metadata?.page_number || null,      // source_page
+    f.metadata?.source_excerpt || null,   // source_location (store excerpt or coordinates)
+    'ai',                                 // extracted_by
+    new Date().toISOString(),             // extracted_at
+    JSON.stringify(f.metadata || {})      // metadata
+  ]);
+
+  const sql = `
+    INSERT INTO atomic_facts
+      (id, evidence_id, fact_type, fact_content, classification, confidence, source_page, source_location, extracted_by, extracted_at, metadata)
+    VALUES ${values}
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  await db.query(sql, params);
+  return facts.length;
+}
+
 export const analyzeRoutes = {
   /**
    * Analyze entire case - extract facts from all evidence
@@ -41,6 +76,7 @@ export const analyzeRoutes = {
 
       for (const item of evidence.rows) {
         const facts = await extractor.extractFacts(item, caseId, env);
+        await persistFacts(db, facts);
         results.push({
           evidenceId: item.id,
           factsExtracted: facts.length,
@@ -121,6 +157,7 @@ export const analyzeRoutes = {
       // Extract facts
       const extractor = new FactExtractor(env);
       const facts = await extractor.extractFacts(evidence, caseId, env);
+      await persistFacts(db, facts);
 
       return new Response(JSON.stringify({
         success: true,

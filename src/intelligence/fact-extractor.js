@@ -101,8 +101,14 @@ ${text.substring(0, 10000)}`;
 
   parseFactsResponse(response) {
     try {
+      // Strip code fences if present
+      const cleaned = String(response)
+        .replace(/^```(json)?/gi, '')
+        .replace(/```$/g, '')
+        .trim();
+
       // Find JSON array in response
-      const match = response.match(/\[[\s\S]*\]/);
+      const match = cleaned.match(/\[[\s\S]*\]/);
       if (match) {
         return JSON.parse(match[0]);
       }
@@ -149,11 +155,21 @@ ${text.substring(0, 10000)}`;
       return false;
     }
 
-    // Check if source excerpt exists in document
-    const normalizedExcerpt = sourceExcerpt.toLowerCase().trim();
-    const normalizedDocument = documentText.toLowerCase();
+    // Normalize whitespace and punctuation for a fuzzy contains check
+    const normalize = (s) => s
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .replace(/[\u2018\u2019\u201C\u201D]/g, '"')
+      .trim();
 
-    return normalizedDocument.includes(normalizedExcerpt.substring(0, 30));
+    const doc = normalize(documentText);
+    const excerpt = normalize(sourceExcerpt);
+
+    // Try full excerpt, then a truncated n-gram prefix
+    if (doc.includes(excerpt)) return true;
+
+    const prefix = excerpt.slice(0, Math.min(20, excerpt.length));
+    return prefix.length >= 15 && doc.includes(prefix);
   }
 
   calculateWeight(evidence, fact) {
@@ -189,7 +205,7 @@ ${text.substring(0, 10000)}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.CHITTY_ID_TOKEN}`
+          'Authorization': `Bearer ${env.CHITTY_ID_TOKEN || env.CHITTYCONNECT_SERVICE_TOKEN || ''}`
         },
         body: JSON.stringify({
           type: 'atomic_fact',
@@ -203,6 +219,9 @@ ${text.substring(0, 10000)}`;
       if (response.ok) {
         const result = await response.json();
         return result.chitty_id;
+      } else {
+        const txt = await response.text();
+        console.warn('ChittyID mint non-200:', response.status, txt);
       }
     } catch (error) {
       console.error('Failed to mint ChittyID:', error);
