@@ -1,0 +1,35 @@
+# ChittyConnect Configuration for chittyintel
+service:
+  name: chittyintel
+  display_name: Chittyintel
+  type: service
+  tier: 4
+  organization: CHITTYAPPS
+  chitty_id: ${CHITTYINTEL_SERVICE_ID}
+  domains:
+    production: intel-app.chitty.cc
+
+onboarding:
+  endpoint: https://get.chitty.cc/api/onboard
+  provisions: [chitty_id, service_token, certificate, trust_chain]
+
+auth:
+  provider: chittyauth
+  endpoint: https://auth.chitty.cc
+  service_token:
+    source: chittyconnect
+    key: CHITTYINTEL_SERVICE_TOKEN
+
+secrets:
+  provider: chittyconnect
+  vault: 1password
+  paths:
+    production: op://ChittyOS/chittyintel-prod
+
+github:
+  repository: CHITTYAPPS/chittyintel
+
+monitoring:
+  health:
+    endpoint: /health
+    interval: 60s
