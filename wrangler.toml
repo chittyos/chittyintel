@@ -6,7 +6,7 @@ account_id = "0bc21e3a5a9de1a4cc843be9c3e98121"
 
 # Production route
 routes = [
-  { pattern = "intel.chitty.cc", custom_domain = true }
+  { pattern = "intel.chitty.cc/*", zone_name = "chitty.cc" }
 ]
 
 # KV Namespaces

@@ -50,7 +50,7 @@ router.all('*', () => new Response('Not Found', { status: 404 }));
 export default {
   async fetch(request, env, ctx) {
     try {
-      const response = await router.handle(request, env, ctx);
+      const response = await router.fetch(request, env, ctx);
 
       // If a route returned a plain object, normalize to Response
       const normalized = response instanceof Response
