@@ -14,7 +14,7 @@
     "itty-router": "^5.0.23"
   },
   "devDependencies": {
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.87.0"
   },
   "engines": {
     "node": ">=18.0.0"
