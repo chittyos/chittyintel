@@ -6,7 +6,19 @@
 import { FactExtractor } from '../../intelligence/fact-extractor.js';
 import { NeonClient } from '../../lib/neon.js';
 
-async function persistFacts(db, facts) {
+/**
+ * Emergency governance gate for the legacy direct atomic_facts writer.
+ *
+ * ChittyIntel may extract candidate facts, but authoritative legal fact
+ * persistence belongs to ChittyEvidence. Keep this opt-in until the producer
+ * is migrated to the governed ChittyEvidence proposal path.
+ */
+export function legacyAtomicFactWritesEnabled(env) {
+  return env?.LEGACY_ATOMIC_FACT_WRITES_ENABLED === 'true';
+}
+
+async function persistFacts(db, facts, env) {
+  if (!legacyAtomicFactWritesEnabled(env)) return 0;
   if (!facts || facts.length === 0) return 0;
 
   // Map to chittyschema authoritative columns for atomic_facts
@@ -76,7 +88,7 @@ export const analyzeRoutes = {
 
       for (const item of evidence.rows) {
         const facts = await extractor.extractFacts(item, caseId, env);
-        await persistFacts(db, facts);
+        await persistFacts(db, facts, env);
         results.push({
           evidenceId: item.id,
           factsExtracted: facts.length,
@@ -157,7 +169,7 @@ export const analyzeRoutes = {
       // Extract facts
       const extractor = new FactExtractor(env);
       const facts = await extractor.extractFacts(evidence, caseId, env);
-      await persistFacts(db, facts);
+      await persistFacts(db, facts, env);
 
       return new Response(JSON.stringify({
         success: true,
