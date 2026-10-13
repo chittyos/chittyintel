@@ -32,6 +32,10 @@ binding = "AI"
 CHITTYOS_DOMAIN = "chitty.cc"
 SERVICE_NAME = "chittyintel"
 API_VERSION = "v1"
+# P0 legal/evidence containment: candidate extraction may continue, but
+# ChittyIntel MUST NOT persist authoritative legal facts directly.
+# Temporary compatibility escape hatch only; remove after ChittyEvidence migration.
+LEGACY_ATOMIC_FACT_WRITES_ENABLED = "false"
 
 # Secrets (set via wrangler secret put)
 # NEON_DATABASE_URL
@@ -64,6 +68,7 @@ binding = "AI"
 CHITTYOS_DOMAIN = "chitty.cc"
 SERVICE_NAME = "chittyintel"
 API_VERSION = "v1"
+LEGACY_ATOMIC_FACT_WRITES_ENABLED = "false"
 
 # ChittyTrack observability
 [[tail_consumers]]
